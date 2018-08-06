@@ -110,6 +110,7 @@ def runGame(screen):
     x = 400
     allSprites.add(p1)
     lives = 3
+    life = pygame.image.load("life.png")
 
     #variables concerning bullets and coins
     bullets = pygame.sprite.Group()
@@ -128,7 +129,38 @@ def runGame(screen):
         scoreText = myFont.render("Score: {0}".format(int(score)),1,(255,255,255))
         allSprites.draw(screen)
         screen.blit(scoreText,(0,0))
+        for i in range(1,lives+1):
+            screen.blit(life,(800-50*i,0))
         pygame.display.flip()
+
+        toRemove = []
+
+        for i in bullets:
+            i.rect.centery, i.rect.centerx = updateBulletPos(i, spd)
+            if i.rect.centery >= 600 or i.rect.centery <= 0 or i.rect.centerx >= 800 or i.rect.centerx <= 0:
+                toRemove.append(i)
+            elif collided(i, p1.rect.centery, p1.rect.centerx, p1.radius):
+                toRemove.append(i)
+                lives -= 1
+
+        for i in toRemove:
+            bullets.remove(i)
+            allSprites.remove(i)
+
+        toRemove = []
+
+        for i in coins:
+            i.rect.centery, i.rect.centerx = updateBulletPos(i, spd)
+            if i.rect.centery >= 600 or i.rect.centery <= 0 or i.rect.centerx >= 800 or i.rect.centerx <= 0:
+                toRemove.append(i)
+            elif collided(i, p1.rect.centery, p1.rect.centerx, p1.radius):
+                toRemove.append(i)
+                score += 100
+
+        for i in toRemove:
+            coins.remove(i)
+            allSprites.remove(i)
+
         rev = [0,0] #direction of revolution
         move = [0,0] #direction of movement (toward or away)
         keys = pygame.key.get_pressed()
@@ -142,34 +174,6 @@ def runGame(screen):
             move[1] = 1
         y,x = updatePlayerPos(y,x,rev,move,center)
         p1.rect.centery,p1.rect.centerx = y,x
-
-        toRemove = []
-
-        for i in bullets:
-            i.rect.centery,i.rect.centerx = updateBulletPos(i,spd)
-            if i.rect.centery>=600 or i.rect.centery<=0 or i.rect.centerx>=800 or i.rect.centerx<=0:
-                toRemove.append(i)
-            elif collided(i,p1.rect.centery,p1.rect.centerx,p1.radius):
-                toRemove.append(i)
-                lives -= 1
-
-        for i in toRemove:
-            bullets.remove(i)
-            allSprites.remove(i)
-
-        toRemove = []
-
-        for i in coins:
-            i.rect.centery,i.rect.centerx = updateBulletPos(i,spd)
-            if i.rect.centery>=600 or i.rect.centery<=0 or i.rect.centerx>=800 or i.rect.centerx<=0:
-                toRemove.append(i)
-            elif collided(i,p1.rect.centery,p1.rect.centerx,p1.radius):
-                toRemove.append(i)
-                score += 100
-
-        for i in toRemove:
-            coins.remove(i)
-            allSprites.remove(i)
 
         cnt += 1
         cnt2 += 1
