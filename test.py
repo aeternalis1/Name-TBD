@@ -161,6 +161,7 @@ def runGame(screen):
             allSprites.remove(i)
 
         cnt += 1
+        score += 1
         if cnt==interval: #spawn new entity
             if randint(1,10)==1: #new coin
                 c1 = coin(randint(5,15),randint(0,359))
@@ -173,6 +174,14 @@ def runGame(screen):
                 bullets.add(b1)
                 allSprites.add(b1)
             cnt = 0
+
+        if score%1000==0:
+            if interval >= 10:
+                interval //= 2
+            if spd <= 8:
+                spd += 0.5
+            cnt = min(cnt,interval-1)
+
         clock.tick(60)
 
 
