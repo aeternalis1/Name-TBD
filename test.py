@@ -1,28 +1,32 @@
 import pygame
+import pygame.gfxdraw
 import math
 from random import randint
 
-CIRCLE = pygame.Surface((30, 30), pygame.SRCALPHA)
-pygame.gfxdraw.aacircle(CIRCLE, 15, 15, 14, (0, 255, 0))
-pygame.gfxdraw.filled_circle(CIRCLE, 15, 15, 14, (0, 255, 0))
 
 
 class bullet(pygame.sprite.Sprite):
     def __init__(self,radius,angle):
         super().__init__()
-        self.rect = self.image.get_rect
         self.radius = radius
+        CIRCLE = pygame.Surface((40, 40), pygame.SRCALPHA)
+        pygame.gfxdraw.aacircle(CIRCLE, 15, 15, radius, (255, 255, 255))
+        pygame.gfxdraw.filled_circle(CIRCLE, 15, 15, radius, (255, 255, 255))
         self.angle = angle
         self.image = CIRCLE
+        self.rect = self.image.get_rect()
 
 
 class coin(pygame.sprite.Sprite):
     def __init__(self,radius,angle):
         super().__init__()
-        self.rect = self.image.get_rect
         self.radius = radius
+        CIRCLE = pygame.Surface((40, 40), pygame.SRCALPHA)
+        pygame.gfxdraw.aacircle(CIRCLE, 15, 15, radius, (255, 255, 0))
+        pygame.gfxdraw.filled_circle(CIRCLE, 15, 15, radius, (255, 255, 0))
         self.angle = angle
         self.image = CIRCLE
+        self.rect = self.image.get_rect()
 
 
 class player(pygame.sprite.Sprite):
@@ -75,24 +79,44 @@ def updatePlayerPos(y,x,rev,move,center):
     return [ny,nx]
 
 
+def updateBulletPos(b1,y,x,spd):
+    dy = math.sin(b1.angle*3.14/180)
+    dx = math.cos(b1.angle*3.14/180)
+    return (b1.rect.centery + spd*dy, b1.rect.centerx + spd*dx)
+
+
+def updateCoinPos(c1,y,x,spd):
+    dy = math.sin(c1.angle*3.14/180)
+    dx = math.cos(c1.angle*3.14/180)
+    return (c1.rect.centery + spd*dy, c1.rect.centerx + spd*dx)
+
+
 def runGame(screen):
     screen.fill((0,0,0))
     clock = pygame.time.Clock()
+
+    #misc. variables
     center = [400,300]
-    lives = 3
     score = 0
-    interval = 60
     start = pygame.time.get_ticks()
-    bullets = pygame.sprite.Group()
-    coins = pygame.sprite.Group()
     allSprites = pygame.sprite.Group()
+
+    #variables concerning player
     p1 = player()
     p1.rect.centery = 100
     p1.rect.centerx = 400
     y = 100
     x = 400
     allSprites.add(p1)
+    lives = 3
+
+    #variables concerning bullets and coins
+    bullets = pygame.sprite.Group()
+    coins = pygame.sprite.Group()
+    interval = 60
     cnt = 0
+    spd = 2
+
     while lives:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -114,18 +138,38 @@ def runGame(screen):
         y,x = updatePlayerPos(y,x,rev,move,center)
         p1.rect.centery,p1.rect.centerx = y,x
 
+        toRemove = []
 
+        for i in bullets:
+            i.rect.centery,i.rect.centerx = updateBulletPos(i,p1.rect.centery,p1.rect.centerx,spd)
+            if i.rect.centery>=600 or i.rect.centery<=0 or i.rect.centerx>=800 or i.rect.centerx<=0:
+                toRemove.append(i)
+
+        for i in toRemove:
+            bullets.remove(i)
+            allSprites.remove(i)
+
+        toRemove = []
+
+        for i in coins:
+            i.rect.centery,i.rect.centerx = updateBulletPos(i,p1.rect.centery,p1.rect.centerx,spd)
+            if i.rect.centery>=600 or i.rect.centery<=0 or i.rect.centerx>=800 or i.rect.centerx<=0:
+                toRemove.append(i)
+
+        for i in toRemove:
+            coins.remove(i)
+            allSprites.remove(i)
 
         cnt += 1
         if cnt==interval: #spawn new entity
             if randint(1,10)==1: #new coin
-                c1 = coin(randint(15,20),randint(0,359))
+                c1 = coin(randint(5,15),randint(0,359))
                 c1.rect.centerx,c1.rect.centery = 400,300
                 coins.add(c1)
                 allSprites.add(c1)
             else:
-                b1 = bullet(randint(15,20),randint(0,359))
-                c1.rect.centerx,c1.rect.centery = 400,300
+                b1 = bullet(randint(5,15),randint(0,359))
+                b1.rect.centerx,b1.rect.centery = 400,300
                 bullets.add(b1)
                 allSprites.add(b1)
             cnt = 0
