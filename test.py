@@ -4,7 +4,6 @@ import math
 from random import randint
 
 
-
 class bullet(pygame.sprite.Sprite):
     def __init__(self,radius,angle):
         super().__init__()
@@ -67,14 +66,10 @@ def updatePlayerPos(y,x,rev,move,center):
     elif move[1] and not move[0]:
         length = dist(y,x,center[1],center[0])
         ny,nx = center[1]+(y-center[1])/length*(length-5),center[0]+(x-center[0])/length*(length-5)
-    if dist(y,x,center[1],center[0])<50:
-        y,x = ny,nx
-        length = dist(y,x,center[1],center[0])
-        ny,nx = center[1]+(y-center[1])/length*(50),center[0]+(x-center[0])/length*(50)
-    elif dist(y,x,center[1],center[0])>280:
-        y,x = ny,nx
-        length = dist(y,x,center[1],center[0])
-        ny,nx = center[1]+(y-center[1])/length*(280),center[0]+(x-center[0])/length*(280)
+    if dist(y,x,center[1],center[0])<50 and move[1]:
+        return [600-y,x]
+    elif dist(y,x,center[1],center[0])>280 and move[0]:
+        return [600-y,x]
     ny = 600-ny
     return [ny,nx]
 
@@ -100,6 +95,7 @@ def collided(cur,y,x,radius):
 def runGame(screen):
     screen.fill((0,0,0))
     clock = pygame.time.Clock()
+    myFont = pygame.font.SysFont("monospace",16)
 
     #misc. variables
     center = [400,300]
@@ -120,14 +116,18 @@ def runGame(screen):
     coins = pygame.sprite.Group()
     interval = 60
     cnt = 0
-    spd = 2
+    cnt2 = 0
+    spd = 3 #speed of projectiles
+    freq = 1 #number of projectiles spawned per interval
 
-    while lives:
+    while lives>0:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
         screen.fill((0,0,0))
+        scoreText = myFont.render("Score: {0}".format(int(score)),1,(255,255,255))
         allSprites.draw(screen)
+        screen.blit(scoreText,(0,0))
         pygame.display.flip()
         rev = [0,0] #direction of revolution
         move = [0,0] #direction of movement (toward or away)
@@ -172,26 +172,32 @@ def runGame(screen):
             allSprites.remove(i)
 
         cnt += 1
-        score += 1
+        cnt2 += 1
+        score += spd+pow(cnt2,0.5)
+
         if cnt==interval: #spawn new entity
-            if randint(1,10)==1: #new coin
-                c1 = coin(randint(5,15),randint(0,359))
-                c1.rect.centerx,c1.rect.centery = 400,300
-                coins.add(c1)
-                allSprites.add(c1)
-            else:
-                b1 = bullet(randint(5,15),randint(0,359))
-                b1.rect.centerx,b1.rect.centery = 400,300
-                bullets.add(b1)
-                allSprites.add(b1)
+            for i in range(randint(1,freq)):
+                if randint(1,10)==1: #new coin
+                    c1 = coin(randint(5,15),randint(0,359))
+                    c1.rect.centerx,c1.rect.centery = 400,300
+                    coins.add(c1)
+                    allSprites.add(c1)
+                else:
+                    b1 = bullet(randint(5,15),randint(0,359))
+                    b1.rect.centerx,b1.rect.centery = 400,300
+                    bullets.add(b1)
+                    allSprites.add(b1)
             cnt = 0
 
-        if score%1000==0:
+        if cnt2%100==0:
+            if spd <= 5:
+                spd += 0.05
+        if cnt2%1000==0:
             if interval >= 10:
                 interval //= 2
-            if spd <= 8:
-                spd += 0.5
             cnt = min(cnt,interval-1)
+        if cnt2%2000==0:
+            freq += 1
 
         clock.tick(60)
 
