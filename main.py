@@ -79,16 +79,22 @@ def updatePlayerPos(y,x,rev,move,center):
     return [ny,nx]
 
 
-def updateBulletPos(b1,y,x,spd):
+def updateBulletPos(b1,spd):
     dy = math.sin(b1.angle*3.14/180)
     dx = math.cos(b1.angle*3.14/180)
     return (b1.rect.centery + spd*dy, b1.rect.centerx + spd*dx)
 
 
-def updateCoinPos(c1,y,x,spd):
+def updateCoinPos(c1,spd):
     dy = math.sin(c1.angle*3.14/180)
     dx = math.cos(c1.angle*3.14/180)
     return (c1.rect.centery + spd*dy, c1.rect.centerx + spd*dx)
+
+
+def collided(cur,y,x,radius):
+    if dist(cur.rect.centery,cur.rect.centerx,y,x) <= radius+cur.radius:
+        return 1
+    return 0
 
 
 def runGame(screen):
@@ -98,7 +104,6 @@ def runGame(screen):
     #misc. variables
     center = [400,300]
     score = 0
-    start = pygame.time.get_ticks()
     allSprites = pygame.sprite.Group()
 
     #variables concerning player
@@ -141,9 +146,12 @@ def runGame(screen):
         toRemove = []
 
         for i in bullets:
-            i.rect.centery,i.rect.centerx = updateBulletPos(i,p1.rect.centery,p1.rect.centerx,spd)
+            i.rect.centery,i.rect.centerx = updateBulletPos(i,spd)
             if i.rect.centery>=600 or i.rect.centery<=0 or i.rect.centerx>=800 or i.rect.centerx<=0:
                 toRemove.append(i)
+            elif collided(i,p1.rect.centery,p1.rect.centerx,p1.radius):
+                toRemove.append(i)
+                lives -= 1
 
         for i in toRemove:
             bullets.remove(i)
@@ -152,9 +160,12 @@ def runGame(screen):
         toRemove = []
 
         for i in coins:
-            i.rect.centery,i.rect.centerx = updateBulletPos(i,p1.rect.centery,p1.rect.centerx,spd)
+            i.rect.centery,i.rect.centerx = updateBulletPos(i,spd)
             if i.rect.centery>=600 or i.rect.centery<=0 or i.rect.centerx>=800 or i.rect.centerx<=0:
                 toRemove.append(i)
+            elif collided(i,p1.rect.centery,p1.rect.centerx,p1.radius):
+                toRemove.append(i)
+                score += 100
 
         for i in toRemove:
             coins.remove(i)
