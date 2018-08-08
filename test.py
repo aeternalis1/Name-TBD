@@ -96,6 +96,7 @@ def runGame(screen):
     screen.fill((0,0,0))
     clock = pygame.time.Clock()
     myFont = pygame.font.SysFont("monospace",16)
+    myFont2 = pygame.font.SysFont("monospace",30)
 
     #misc. variables
     center = [400,300]
@@ -127,10 +128,10 @@ def runGame(screen):
                 pygame.quit()
         screen.fill((0,0,0))
         scoreText = myFont.render("Score: {0}".format(int(score)),1,(255,255,255))
-        allSprites.draw(screen)
         screen.blit(scoreText,(0,0))
         for i in range(1,lives+1):
-            screen.blit(life,(800-50*i,0))
+            screen.blit(life,(800-50*i,10))
+        allSprites.draw(screen)
         pygame.display.flip()
 
         toRemove = []
@@ -155,7 +156,7 @@ def runGame(screen):
                 toRemove.append(i)
             elif collided(i, p1.rect.centery, p1.rect.centerx, p1.radius):
                 toRemove.append(i)
-                score += 100
+                score += 100*(spd+pow(cnt2,0.5))
 
         for i in toRemove:
             coins.remove(i)
@@ -180,15 +181,23 @@ def runGame(screen):
         score += spd+pow(cnt2,0.5)
 
         if cnt==interval: #spawn new entity
+            angles = []
+            cur = int(math.atan2(p1.rect.centery-center[1],p1.rect.centerx-center[0])*180/3.1415)
             for i in range(randint(1,freq)):
                 if randint(1,10)==1: #new coin
-                    c1 = coin(randint(5,15),randint(0,359))
+                    c1 = coin(randint(5,15),randint(cur-90,cur+90))
                     c1.rect.centerx,c1.rect.centery = 400,300
+                    while c1.angle in angles:
+                        c1.angle = randint(cur-90,cur+90)
+                    angles.append(c1.angle)
                     coins.add(c1)
                     allSprites.add(c1)
                 else:
-                    b1 = bullet(randint(5,15),randint(0,359))
+                    b1 = bullet(randint(5,15),randint(cur-90,cur+90))
                     b1.rect.centerx,b1.rect.centery = 400,300
+                    while b1.angle in angles:
+                        b1.angle = randint(cur-90,cur+90)
+                    angles.append(b1.angle)
                     bullets.add(b1)
                     allSprites.add(b1)
             cnt = 0
@@ -204,7 +213,34 @@ def runGame(screen):
             freq += 1
 
         clock.tick(60)
-
+    gameover = pygame.image.load("gameover.png")
+    playAgain = pygame.image.load("gameover-play.png")
+    mainMenu = pygame.image.load("gameover-menu.png")
+    curScore = myFont2.render("Your Score: {0}".format(int(score)),1,(255,255,255))
+    highScore = myFont2.render("High Score: {0}".format(int(score)),1,(255,255,255))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+        screen.fill((0,0,0))
+        bx,by = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+        if bx >= 117 and bx <= 322 and by >= 500 and by <= 555:
+            if 1 in click:
+                runGame(screen)
+                return
+            else:
+                screen.blit(playAgain,(0,0))
+        elif bx >= 467 and bx <= 672 and by >= 500 and by <= 555:
+            if 1 in click:
+                return
+            else:
+                screen.blit(mainMenu,(0,0))
+        else:
+            screen.blit(gameover,(0,0))
+        screen.blit(curScore,(400-curScore.get_rect().width/2,200))
+        screen.blit(highScore,(400-highScore.get_rect().width/2,250))
+        pygame.display.flip()
 
 
 def main():
