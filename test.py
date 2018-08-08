@@ -122,13 +122,36 @@ def runGame(screen):
     spd = 3 #speed of projectiles
     freq = 1 #number of projectiles spawned per interval
 
+    #access high score
+    try:
+        f = open("highscore.txt", "r")
+        print ("ok")
+    except:
+        f = open("highscore.txt", "w+")
+        f.write("0")
+        f.close()
+        f = open("highscore.txt", "r")
+    try:
+        if f.mode=='r':
+            high = int(f.read())
+        f.close()
+        f = open("highscore.txt","w")
+    except:
+        f.close()
+        f = open("highscore.txt","w")
+        high = 0
+        f.write("0")
+
     while lives>0:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
         screen.fill((0,0,0))
+        high = max(high,score)
         scoreText = myFont.render("Score: {0}".format(int(score)),1,(255,255,255))
+        highText = myFont.render("High: {0}".format(int(high)),1,(255,255,255))
         screen.blit(scoreText,(0,0))
+        screen.blit(highText,(0,30))
         for i in range(1,lives+1):
             screen.blit(life,(800-50*i,10))
         allSprites.draw(screen)
@@ -213,11 +236,15 @@ def runGame(screen):
             freq += 1
 
         clock.tick(60)
+    high = max(high,int(score))
+    f.write(str(int(high)))
+    f.close()
+
     gameover = pygame.image.load("gameover.png")
     playAgain = pygame.image.load("gameover-play.png")
     mainMenu = pygame.image.load("gameover-menu.png")
     curScore = myFont2.render("Your Score: {0}".format(int(score)),1,(255,255,255))
-    highScore = myFont2.render("High Score: {0}".format(int(score)),1,(255,255,255))
+    highScore = myFont2.render("High Score: {0}".format(int(high)),1,(255,255,255))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
