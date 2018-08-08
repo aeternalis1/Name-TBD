@@ -125,7 +125,6 @@ def runGame(screen):
     #access high score
     try:
         f = open("highscore.txt", "r")
-        print ("ok")
     except:
         f = open("highscore.txt", "w+")
         f.write("0")
@@ -135,12 +134,13 @@ def runGame(screen):
         if f.mode=='r':
             high = int(f.read())
         f.close()
-        f = open("highscore.txt","w")
+        f = open("highscore.txt","w+")
     except:
         f.close()
-        f = open("highscore.txt","w")
+        f = open("highscore.txt","w+")
         high = 0
         f.write("0")
+        f.close()
 
     while lives>0:
         for event in pygame.event.get():
@@ -148,6 +148,9 @@ def runGame(screen):
                 pygame.quit()
         screen.fill((0,0,0))
         high = max(high,score)
+        f = open("highscore.txt","w+")
+        f.write(str(int(high)))
+        f.close()
         scoreText = myFont.render("Score: {0}".format(int(score)),1,(255,255,255))
         highText = myFont.render("High: {0}".format(int(high)),1,(255,255,255))
         screen.blit(scoreText,(0,0))
@@ -237,6 +240,7 @@ def runGame(screen):
 
         clock.tick(60)
     high = max(high,int(score))
+    f = open("highscore.txt","w+")
     f.write(str(int(high)))
     f.close()
 
